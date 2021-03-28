@@ -1,6 +1,6 @@
 # Scrape Live Chat Comments with Selenium and Python
 
-There's a few running YouTube LiveChats which have great running commentary, in particular, for my interest in trains. This script prints the most recent chats and the chat author. Updating for a different chat or output other than stdout is left to the user, but since the script is simple, this shouldn't be hard to align to your use case.
+There's a few running YouTube LiveChats which have great running commentary, in particular, for my interest in trains. This script runs a loop which prints chats and the chat author. Updating for a different chat or output other than stdout is left to the user, but since the script is simple, this shouldn't be hard to align to your use case.
 
 ## Usage
 ```
@@ -22,7 +22,7 @@ Kb7yim: Symbol for the 14:54 should be looked at
 
 ## TODOs
 
-- persistent store of commentary
-- check for new messages
-- filtering (only certain authors, etc)
-- argparse to convert to a command line utility
+[x] persistent store of commentary
+[x] check for new messages
+[] filtering (only certain authors, etc)
+[] argparse to convert to a command line utility
