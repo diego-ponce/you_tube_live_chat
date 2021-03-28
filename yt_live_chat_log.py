@@ -3,11 +3,6 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 
-# import sys
-# import os
-# import httplib2
-
-
 # setup driver
 chrome_options = Options()
 chrome_options.add_argument("--headless")
@@ -23,8 +18,8 @@ url = base_url + str(chat_id)
 
 # get the page and process the messages
 driver.get(url)
-messages = driver.find_element_by_id('chat-messages')
-item_list = messages.find_element_by_id('item-list')
+chat_messages = driver.find_element_by_id('chat-messages')
+item_list = chat_messages.find_element_by_id('item-list')
 item = item_list.find_element_by_id('items')
 messages = item.find_elements_by_tag_name('yt-live-chat-text-message-renderer')
 
