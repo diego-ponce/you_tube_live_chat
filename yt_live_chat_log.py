@@ -3,6 +3,24 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 
+from models import ChatMessage, Base
+from sqlalchemy.sql import exists
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+        
+from time import sleep
+import sys
+import os
+
+DB = "livechat.db"
+REFRESH_RATE = 10 # seconds
+
+engine = create_engine(f'sqlite:///{DB}')
+Base.metadata.create_all(bind=engine)
+Session = sessionmaker(bind=engine)
+
+
+
 # setup driver
 chrome_options = Options()
 chrome_options.add_argument("--headless")
@@ -16,17 +34,42 @@ base_url = "https://www.youtube.com/live_chat?v="
 chat_id = "bfGaUembwA8"
 url = base_url + str(chat_id)
 
-# get the page and process the messages
-driver.get(url)
-chat_messages = driver.find_element_by_id('chat-messages')
-item_list = chat_messages.find_element_by_id('item-list')
-item = item_list.find_element_by_id('items')
-messages = item.find_elements_by_tag_name('yt-live-chat-text-message-renderer')
+def get_current_messages(url):
+    "return a list of yt-live-chat-text-message-renderer elements"
+    driver.get(url)
+    chat_messages = driver.find_element_by_id('chat-messages')
+    item_list = chat_messages.find_element_by_id('item-list')
+    item = item_list.find_element_by_id('items')
+    messages = item.find_elements_by_tag_name('yt-live-chat-text-message-renderer')
+    return messages
 
-for message in messages:
-    author = message.find_element_by_id('author-name').text
-    message = message.find_element_by_id('message').text
-    print("{}: {}".format(author, message))
+def add_messages(url):
+    "add messages to db if they aren't added"
+    session = Session()
+    messages = get_current_messages(url)
+    for message_elem in messages:
+        message = ChatMessage()
+        message.author = message_elem.find_element_by_id('author-name').text
+        message.text = message_elem.find_element_by_id('message').text
+        message.message_id = message_elem.get_attribute('id')
+        message_exists = session.query(exists().where(ChatMessage.message_id == message.message_id)).scalar()
+        if not message_exists:
+            try:
+                session.add(message)
+                session.commit()
+                print("{}: {}".format(message.author, message.text))
+            except:
+                pass
+    session.close()
 
-# close out
-driver.quit()
+while True:
+	try:
+		add_messages(url)
+		sleep(REFRESH_RATE)
+	except KeyboardInterrupt:
+		print('Interrupted')
+		try:
+			driver.quit()
+			sys.exit(0)
+		except SystemExit:
+			os._exit(0)
